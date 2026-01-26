@@ -1,14 +1,21 @@
 #include "file_modifier.h"
 
-#include "fm_settings_widget.h"
 
-FileModifier::FileModifier() {
-    this->mainWindow = new MainWindow{};
-    this->mainWindow->addWidgetToLeftLayout(new SettingsWidget{mainWindow});
+#include <QListWidget>
+#include <QStandardItemModel>
+#include <QTableView>
 
-}
-
-void FileModifier::show()
+FileModifier::FileModifier(QWidget *parent) : QWidget(parent)
 {
-    this->mainWindow->show();
+    QHBoxLayout *mainLayout = new QHBoxLayout{this};
+
+    controlWidget = new ControlWidget{this};
+    processWidget = new ProcessWidget{this};
+    fileWorker = new FileWorker{this};
+
+    this->setLayout(mainLayout);
+    mainLayout->addWidget(controlWidget);
+    mainLayout->addWidget(processWidget);
+    QObject::connect(processWidget, &ProcessWidget::scanButtonClicked, fileWorker, &FileWorker::onScanButtonClicked);
+    QObject::connect(fileWorker, &FileWorker::filesScanned, processWidget, &ProcessWidget::onDirScanned);
 }

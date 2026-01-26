@@ -17,9 +17,10 @@ add_executable(qt_file_modifier
   main.cpp
   fm_worker.cpp fm_worker.h
 
-  fm_settings_widget.h fm_settings_widget.cpp
-  fm_main_window.h fm_main_window.cpp
+  fm_control_widget.h fm_control_widget.cpp
+
   file_modifier.h file_modifier.cpp
+  fm_file_process_widget.h fm_file_process_widget.cpp
 
 )
 target_link_libraries(qt_file_modifier PRIVATE Qt${QT_VERSION_MAJOR}::Core)

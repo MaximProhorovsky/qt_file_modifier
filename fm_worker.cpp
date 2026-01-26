@@ -5,45 +5,55 @@
 #include <QStringList>
 #include <QtConcurrent/QtConcurrent>
 
+FileWorker::FileWorker(QObject *parent) : QObject(parent)
+{}
 
-QByteArray readFile(const QDir &dir, const QString &fileName)
+QFileInfoList FileWorker::readFilesFromInDir()
 {
-    QFile file{dir.absoluteFilePath(fileName)};
-    if(!file.open(QIODevice::WriteOnly)){
-        qWarning() << "Не удалось открыть файл для чтения: " << file.fileName();
-        return QByteArray();
-    }
-    QByteArray data = file.readLine();
-    file.close();
-    return data;
+    return inDir.entryInfoList(QStringList{fileMask}, QDir::Files);
 }
 
-void FileWorker::processFiles(const QDir &inDir, const QDir &outDir, const QString &fileMask, qint64 value)
+void FileWorker::onScanButtonClicked()
 {
-    QFileInfoList files = inDir.entryInfoList(QStringList{fileMask}, QDir::Files);
-    int totalFiles = files.size();
-    int *processedCount = new int(0);
+    QFileInfoList files = readFilesFromInDir();
+    emit filesScanned(files);
+}
 
+void FileWorker::processFiles(qint64 value)
+{
+    QFileInfoList files = readFilesFromInDir();
     for (const QFileInfo &fileInfo : files) {
-        QFile file{fileInfo.absoluteFilePath()};
-        QFile outFile{outDir.absoluteFilePath(fileInfo.fileName())};
-        auto test = QtConcurrent::run([=, &file, &outFile](){ this->processFile(file, outFile, value, true);});
-        test.waitForFinished();
+        QFutureWatcher<void> *watcher = new QFutureWatcher<void>;
+        connect(watcher, &QFutureWatcherBase::finished, this, [=](){
+            qDebug() << "Завершен файл: " << fileInfo.fileName();
+            watcher->deleteLater();
+            watchers.removeOne(watcher);
+            if(watchers.isEmpty()){
+                emit allFilesProcessed();
+                qDebug() << "Все файлы обработаны";
+            }
+        });
+        qDebug() << "Старт обработки файла: " << fileInfo.fileName();
+        QFuture<void> future = QtConcurrent::run([&](){
+            this->processFile(fileInfo, value, true);
+        });
+        watcher->setFuture(future);
+        watchers.append(watcher);
     }
-    delete processedCount;
 }
 
-void FileWorker::processFile(QFile &inFile, QFile &outFile, qint64 value, bool overwrite)
+void FileWorker::processFile(const QFileInfo &fileInfo, qint64 value, bool overwrite)
 {
-    const QString &fileName = inFile.fileName();
-    qInfo() << "Start Process file: " << fileName;
+    const QString &fileName = fileInfo.fileName();
+    QFile inFile{fileInfo.absoluteFilePath()};
+    QFile outFile{this->outDir.absoluteFilePath(fileName)};
     if (!inFile.exists()) {
         qWarning() << "Входной файл не найден:" << fileName;
         emit fileProcessed(fileName, false);
         return;
     }
     if (!inFile.open(QIODevice::ReadWrite)) {
-        qWarning() << "Не удалось открыть входной файл:" << fileName;
+        qWarning() << "Не удалось открыть исходный файл:" << fileName;
         emit fileProcessed(fileName, false);
         return;
     }
@@ -91,5 +101,6 @@ void FileWorker::processFile(QFile &inFile, QFile &outFile, qint64 value, bool o
     }
     emit fileProcessed(fileName, true);
     inFile.close();
-    qInfo() << "End Process file: " << fileName;
+    outFile.close();
 }
+

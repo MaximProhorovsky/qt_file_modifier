@@ -2,26 +2,35 @@
 #define FM_WORKER_H
 
 #include <QDir>
+#include <QFuture>
 #include <QStringList>
 
 class FileWorker : public QObject
 {
 Q_OBJECT
 public:
-    void processFiles(const QDir &inDir, const QDir &outDir, const QString &fileMask, qint64 value);
+    FileWorker(QObject *parent = nullptr);
+    void processFiles(qint64 value);
+    QFileInfoList readFilesFromInDir();
 signals:
     void fileProcessUpdated(const QString &fileName, double percent);
     void fileProcessed(const QString &fileName, bool isSuccess);
     void allFilesProcessed();
+    void filesScanned(const QFileInfoList &files);
 public slots:
-    void inputDirChange(QDir &&newDir){ this->inDir = qMove(newDir);}
-    void outputDirChange(QDir &&newDir){ this->outDir = qMove(newDir);}
+    void onScanButtonClicked();
+    void inDirChange(QDir &newDir){ this->inDir = newDir; }
+    void outDirChange(QDir &newDir){ this->outDir = newDir; }
 private:
     const qint64 PARTITION_SIZE = 1<<20;
-    QDir inDir;
-    QDir outDir;
 
-    void processFile(QFile &inFile, QFile &outFile, qint64 value, bool overwrite);
+    QList<QFuture<void>> futures;
+    QList<QFutureWatcher<void>*> watchers;
+    QString fileMask{"*.txt"};
+    QDir inDir{"C:/Users/maksi/qtSource/qt_file_modifier/files/"};
+    QDir outDir{"C:/Users/maksi/qtSource/qt_file_modifier/results/"};
+
+    void processFile(const QFileInfo &fileInfo, qint64 value, bool overwrite);
     void readFile(const QDir &dir, const QString &fileName);
     bool writeFile(const QDir &dir, const QString &fileName, const QByteArray &data);
 };

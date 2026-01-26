@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     FileModifier fileModifier{};
     fileModifier.show();
 
-    // QDir fileDir{"C:/Users/maksi/qtSource/qt_file_modifier/files/"};
+    // QDir fileDir{""};
     // QDir resultDir{"C:/Users/maksi/qtSource/qt_file_modifier/results/"};
     // FileWorker fileprocessor{};
     // fileprocessor.processFiles(fileDir, resultDir, "*.txt", 1627712721LL);

@@ -1,15 +1,21 @@
 #ifndef FILE_MODIFIER_H
 #define FILE_MODIFIER_H
-#include "fm_main_window.h"
+#include "fm_control_widget.h"
+#include "fm_file_process_widget.h"
 #include "fm_worker.h"
 
-class FileModifier
+#include <QHBoxLayout>
+#include <QWidget>
+
+class FileModifier : public QWidget
 {
+    Q_OBJECT
 public:
-    FileModifier();
-    void show();
+    FileModifier(QWidget *parent = nullptr);
+
 private:
-    MainWindow *mainWindow;
+    ControlWidget *controlWidget;
+    ProcessWidget *processWidget;
     FileWorker *fileWorker;
 };
 
