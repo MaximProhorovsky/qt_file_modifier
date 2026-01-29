@@ -14,17 +14,21 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 add_executable(qt_file_modifier
-  main.cpp
-  fm_worker.cpp fm_worker.h
-
-  fm_control_widget.h fm_control_widget.cpp
-
-  file_modifier.h file_modifier.cpp
-  fm_file_process_widget.h fm_file_process_widget.cpp
-
+  src/main.cpp
+  src/file_worker.cpp include/file_worker.h
+  include/widgets/control_widget.h src/widgets/control_widget.cpp
+  include/main_window.h src/main_window.cpp
+  include/widgets/process_widget.h src/widgets/process_widget.cpp
+  include/widgets/dir_input_widget.h src/widgets/dir_input_widget.cpp
+  include/widgets/text_input_widget.h src/widgets/text_input_widget.cpp
+  include/setting.h
 )
 target_link_libraries(qt_file_modifier PRIVATE Qt${QT_VERSION_MAJOR}::Core)
 target_link_libraries(qt_file_modifier PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_include_directories(qt_file_modifier PRIVATE
+  ${PROJECT_SOURCE_DIR}/include
+  ${PROJECT_SOURCE_DIR}/src
+)
 
 include(GNUInstallDirs)
 install(TARGETS qt_file_modifier

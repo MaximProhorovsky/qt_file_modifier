@@ -1,6 +1,7 @@
-#ifndef FM_FILE_PROCESS_WIDGET_H
-#define FM_FILE_PROCESS_WIDGET_H
+#ifndef FILE_PROCESS_WIDGET_H
+#define FILE_PROCESS_WIDGET_H
 
+#include "setting.h"
 #include <QFileInfoList>
 #include <QLabel>
 #include <QPushButton>
@@ -16,17 +17,22 @@ public:
 
 signals:
     void scanButtonClicked();
+    void actionButtonClicked();
 public slots:
-    void onFileProcessed();
+    void onFileProcessingStarted();
+    void onFileProcessed(const QString &fileName, bool isSucess);
     void onAllFilesProcessed();
     void onDirScanned(const QFileInfoList &files);
+    void onRunWithTimerChanged(bool value);
 private:
     QTableView *filesTable;
     QStandardItemModel *filesModel;
     QLabel *filesCountLabel;
     QPushButton *scanBtn;
     QPushButton *actionBtn;
-    bool scanned = false;
+    QAtomicInteger<qsizetype> filesProcessed{0};
+    qsizetype totalFiles;
+    bool runWithTimer = Setting::WITH_TIMER;
 };
 
-#endif // FM_FILE_PROCESS_WIDGET_H
+#endif // FILE_PROCESS_WIDGET_H
