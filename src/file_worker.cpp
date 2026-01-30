@@ -121,19 +121,7 @@ void FileWorker::processFile(const QFileInfo &fileInfo, bool modifierValue, bool
 
     bool isSuccess = true;
     while (processedBytes < totalSize) {
-        qint64 chunkSize = qMin(PARTITION_SIZE, totalSize - processedBytes);
-        if (!inFile.seek(processedBytes)) {
-            qWarning() << "Не удалось перейти к позиции" << processedBytes << "в файле" << fileName;
-            isSuccess = false;
-            break;
-        }
-        QByteArray buffer = inFile.read(chunkSize);
-        if (buffer.isEmpty() && chunkSize > 0) {
-            qWarning() << "Ошибка чтения файла" << fileName;
-            isSuccess = false;
-            break;
-        }
-
+        QByteArray buffer = inFile.read(PARTITION_SIZE);
         for (int i = 0; i < buffer.size(); ++i) {
             buffer[i] = buffer[i] ^ modifierValue;
         }
@@ -144,7 +132,7 @@ void FileWorker::processFile(const QFileInfo &fileInfo, bool modifierValue, bool
             isSuccess = false;
             break;
         }
-        processedBytes += chunkSize;
+        processedBytes += buffer.size();
     }
     inFile.close();
     outFile.close();
